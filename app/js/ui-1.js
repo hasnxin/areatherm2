@@ -47,7 +47,10 @@ window.UI = window.UI || {};
         <div class="card metric-card"><div class="metric-label">Avg. Indoor Temp</div><div class="metric-value">${last ? last.comfort.avgIndoor : "—"}</div><div class="metric-sub">°C ${last ? '<span class="tag tag-model">model</span>' : ""}</div></div>
       </div>
 
-      ${s.location ? `<div class="card" style="margin-bottom:18px;">${U.badge(s.climateSource)} <span class="hint">for ${U.esc(s.location.label)}</span></div>` : ""}
+      ${s.location ? `<div class="card" style="margin-bottom:18px;">
+          ${U.badge(s.climateSource)} <span class="hint">for ${U.esc(s.location.label)}</span>
+          ${s.location.solarDataSource ? `<div class="hint" style="margin-top:6px;">Solar potential: <b>${s.location.annualSolarKwhM2Yr} kWh/m²/yr</b> · Avg. temp: <b>${s.location.avgTempCAnnual}°C</b> — NASA POWER (${U.esc(s.location.solarDataSource.period)})</div>` : ""}
+        </div>` : ""}
 
       <button class="collapse-toggle" id="advToggle">
         <span class="chev">▾</span> Detailed Analytics
@@ -112,6 +115,13 @@ window.UI = window.UI || {};
         <div class="metric-card"><div class="metric-label">Sunshine Window</div><div class="metric-value" style="font-size:18px;">${season.sunrise}h – ${season.sunset}h</div></div>
         <div class="metric-card"><div class="metric-label">Wind / RH / Cloud</div><div class="metric-value" style="font-size:15px;">${season.windMs} m/s · ${season.rhPct}% · ${season.cloudPct}%</div></div>
       </div>
+      ${s.location && s.location.solarDataSource ? `
+      <div class="data-badge real" style="margin-top:10px;">✓ Annual solar potential: <b>${U.esc(String(s.location.annualSolarKwhM2Yr))} kWh/m²/yr</b>
+        (GHI ${s.location.solarDataSource.ghiKwhM2DayAnnual.toFixed(2)} kWh/m²/day, DNI ${s.location.solarDataSource.dniKwhM2DayAnnual.toFixed(2)} kWh/m²/day)
+        — ${U.esc(s.location.solarDataSource.label)}, ${U.esc(s.location.solarDataSource.period)}</div>
+      ` : (s.climateSource && s.climateSource.type === "REAL" ? `
+      <div class="data-badge illustrative" style="margin-top:10px;">⚠ Annual solar figure (${s.location.annualSolarKwhM2Yr} kWh/m²/yr) is extrapolated from the current 7-day forecast, not a real climatology — NASA POWER climatology fetch unavailable.</div>
+      ` : "")}
       <h3 style="margin-top:16px;">24-Hour Ambient Temperature &amp; Solar Irradiance ${season.hourly ? "(live hourly curve)" : "(model input curve)"}</h3>
       <div id="climateChart"></div>`;
     const hours = Array.from({ length: 25 }, (_, i) => i);

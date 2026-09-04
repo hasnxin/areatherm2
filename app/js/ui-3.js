@@ -213,9 +213,11 @@ window.UI = window.UI || {};
 
       <div class="grid grid-3" style="margin-bottom:16px;">
         <div class="card"><h3>Location</h3><div style="font-size:16px;font-weight:700;">${s.location ? U.esc(s.location.label) : "Not selected"}</div>
-          <div class="hint">${s.location ? (s.climateSource && s.climateSource.type === "REAL"
-            ? `${STORE.currentSeason().solarKwhDay} kWh/m²/day · ${s.location.avgSunshineHoursDay}h daylight · ${STORE.currentSeason().cloudPct}% cloud cover (live avg, not annual climatology)`
-            : `${s.location.annualSolarKwhM2Yr} kWh/m²/yr · ${s.location.avgSunshineHoursDay}h sunshine/day · ${s.location.avgCloudFreeDays} clear days/yr`) : ""}</div></div>
+          <div class="hint">${s.location ? (s.location.solarDataSource
+            ? `${s.location.annualSolarKwhM2Yr} kWh/m²/yr (NASA POWER, ${U.esc(s.location.solarDataSource.period)}) · ${s.location.avgSunshineHoursDay}h daylight`
+            : (s.climateSource && s.climateSource.type === "REAL"
+              ? `${STORE.currentSeason().solarKwhDay} kWh/m²/day · ${s.location.avgSunshineHoursDay}h daylight · ${STORE.currentSeason().cloudPct}% cloud cover (live avg, not annual climatology)`
+              : `${s.location.annualSolarKwhM2Yr} kWh/m²/yr · ${s.location.avgSunshineHoursDay}h sunshine/day · ${s.location.avgCloudFreeDays} clear days/yr`)) : ""}</div></div>
         <div class="card"><h3>Climate Severity (${s.seasonKey || "—"})</h3><div style="font-size:16px;font-weight:700;">${STORE.currentSeason() ? STORE.currentSeason().tMin + "°C to " + STORE.currentSeason().tMax + "°C" : "—"}</div>
           <div class="hint">${STORE.currentSeason() ? (STORE.currentSeason().tMax - STORE.currentSeason().tMin).toFixed(0) + "°C diurnal swing" : ""}</div></div>
         <div class="card"><h3>Validation Status</h3><div style="font-size:16px;font-weight:700;">${s.validationDatasets.length ? s.validationDatasets.length + " dataset(s) compared" : "Not yet validated"}</div>

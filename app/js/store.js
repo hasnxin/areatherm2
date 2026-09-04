@@ -93,9 +93,12 @@ window.APP_STORE = (function () {
       country: "India", state: loc.region, district: "",
       latitude: loc.latitude, longitude: loc.longitude,
       elevationM: climate.elevationM || loc.elevationM,
+      // Extrapolated placeholder until/unless NASA POWER climatology (below)
+      // supplies a real 20-year annual figure — kept only as a fallback.
       annualSolarKwhM2Yr: Math.round(climate.solarKwhDay * 365),
       avgSunshineHoursDay: Math.max(0, Math.round((climate.sunset - climate.sunrise) * 10) / 10),
       avgCloudFreeDays: Math.round(((100 - climate.cloudPct) / 100) * 365),
+      solarDataSource: null, // set below if the NASA fetch succeeds
       seasons: { Live: climate }
     };
     state.seasonKey = "Live";
@@ -105,6 +108,24 @@ window.APP_STORE = (function () {
     };
     state.project.name = `${loc.name} — Passive Shelter`;
     save();
+
+    // NASA POWER gives real long-term climatology, not a forecast
+    // extrapolation — a strictly better "annual solar potential" figure.
+    // Fetched separately so a NASA outage never blocks the (higher
+    // priority) Open-Meteo weather that actually drives the simulation.
+    try {
+      const nasa = await window.APP_NASA.fetchClimatology(loc.latitude, loc.longitude);
+      state.location.annualSolarKwhM2Yr = nasa.annualSolarKwhM2Yr;
+      state.location.avgTempCAnnual = nasa.tempCAnnual;
+      state.location.solarDataSource = {
+        label: nasa.label, period: nasa.period, fetchedAt: nasa.fetchedAt,
+        ghiKwhM2DayAnnual: nasa.ghiKwhM2DayAnnual, dniKwhM2DayAnnual: nasa.dniKwhM2DayAnnual
+      };
+      save();
+    } catch (e) {
+      // Leave the Open-Meteo-derived extrapolation in place; UI labels it
+      // as such whenever solarDataSource is null.
+    }
     return state.location;
   }
 
