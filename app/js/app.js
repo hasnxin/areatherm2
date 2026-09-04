@@ -53,18 +53,29 @@ window.APP = (function () {
     document.getElementById("explainModal").classList.remove("hidden");
   }
 
-  function runLadakhDemo() {
-    STORE.loadLadakhDemo("leh", "Winter");
-    const s = STORE.get();
-    s.design = STORE.defaultDesign();
-    STORE.save();
-    const season = STORE.currentSeason();
-    const result = ENGINE.runSimulation(s.design, season, s.simConfig);
-    STORE.recordSimulation(result);
-    const opt = ENGINE.runOptimization(s.design, season, s.simConfig, s.weights);
-    STORE.recordOptimization(opt);
-    navigate("evaluator");
-    toast("Ladakh demo loaded: climate → simulation → optimization complete.");
+  // "Live Demo" fetches real weather (Open-Meteo + NASA POWER) for Leh —
+  // no illustrative/hand-authored climate data anywhere in the app.
+  async function runLiveDemo() {
+    const btn = document.getElementById("runLiveDemoBtn");
+    if (btn) btn.disabled = true;
+    toast("Fetching live weather for Leh, Ladakh…");
+    try {
+      await STORE.loadRealClimate("leh");
+      const s = STORE.get();
+      s.design = STORE.defaultDesign();
+      STORE.save();
+      const season = STORE.currentSeason();
+      const result = ENGINE.runSimulation(s.design, season, s.simConfig);
+      STORE.recordSimulation(result);
+      const opt = ENGINE.runOptimization(s.design, season, s.simConfig, s.weights);
+      STORE.recordOptimization(opt);
+      navigate("evaluator");
+      toast("Live demo complete: real climate → simulation → optimization.");
+    } catch (e) {
+      toast("Could not fetch live weather: " + e.message);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   }
 
   function init() {
@@ -72,7 +83,7 @@ window.APP = (function () {
     document.title = CFG.APP_NAME + " — Passive Shelter Thermal Design Platform";
 
     window.addEventListener("hashchange", render);
-    document.getElementById("runLadakhDemoBtn").addEventListener("click", runLadakhDemo);
+    document.getElementById("runLiveDemoBtn").addEventListener("click", runLiveDemo);
     document.getElementById("explainClose").addEventListener("click", () => document.getElementById("explainModal").classList.add("hidden"));
     document.getElementById("explainModal").addEventListener("click", (e) => { if (e.target.id === "explainModal") e.currentTarget.classList.add("hidden"); });
 
@@ -85,7 +96,7 @@ window.APP = (function () {
     render();
   }
 
-  return { render, navigate, toast, showExplain, runLadakhDemo, init };
+  return { render, navigate, toast, showExplain, runLiveDemo, init };
 })();
 
 document.addEventListener("DOMContentLoaded", window.APP.init);

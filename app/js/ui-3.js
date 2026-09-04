@@ -124,7 +124,7 @@ window.UI = window.UI || {};
           <p style="margin:0;">This report contains model-based predictions. Field validation against instrumented
           shelter measurements is <b>required</b> before deployment.<br/>
           Data source: <b>${s.climateSource ? U.esc(s.climateSource.label) : "Not set"}</b>
-          ${s.climateSource ? `(${U.esc(s.climateSource.period || (s.climateSource.type === "REAL" ? "live" : "illustrative"))})` : ""}<br/>
+          ${s.climateSource ? `(${U.esc(s.climateSource.period || "live")})` : ""}<br/>
           Validation status: <b>${s.validationDatasets.length ? s.validationDatasets.length + " dataset(s) compared — see Validation module" : "Not field-validated"}</b></p>
         </div>
         <h3 style="margin-top:16px;">1–2. Project &amp; Location</h3>
@@ -292,7 +292,7 @@ window.UI = window.UI || {};
             <li>Ground temperature defaults to seasonal mean ambient unless overridden.</li>
             <li>Internal gains constant-per-hour unless an occupancy schedule is supplied.</li>
             <li>PCM modelled via elevated apparent specific heat over its melt band.</li>
-            <li>Weather is user-provided or a labelled "Demo / illustrative" dataset — never field-measured.</li>
+            <li>Weather is a live 7-day forecast average (Open-Meteo) with real 20-year solar/temperature climatology (NASA POWER) — a forecast/climatology blend, never a field measurement.</li>
           </ul>
         </div>
       </div>

@@ -38,33 +38,33 @@ browser file-access restrictions.)
 
 ## Demo
 
-Click **"Run Ladakh Demo"** (top-right, on every screen). This loads the
-illustrative Leh winter climate dataset, runs a 24-hour thermal simulation on
-a baseline shelter, runs the design optimizer (60 candidate configurations),
-and lands you on **Evaluator Summary** — a 2-3 minute story of the problem,
-the model, and the recommended design.
+Click **"Run Live Demo"** (top-right, on every screen). This fetches real
+live weather for Leh from Open-Meteo + NASA POWER, runs a 24-hour thermal
+simulation on a baseline shelter, runs the design optimizer (60 candidate
+configurations), and lands you on **Evaluator Summary** — a 2-3 minute story
+of the problem, the model, and the recommended design. No hand-authored or
+illustrative climate data is used anywhere — every figure is live.
 
 To walk the full workflow manually: **Dashboard → Location & Climate → Shelter
 Designer → Materials → Thermal Simulation → Optimization → What-If Analysis →
 Validation → Reports → Evaluator Summary → Settings** (left nav, top to bottom).
 
-## What's real vs. what's illustrative
+## What's real vs. what's a documented model assumption
 
 | | |
 |---|---|
 | Thermal physics (sol-air conduction, SHGC solar gain, infiltration, two-node RC thermal mass) | **Real model**, formulas in `ARCHITECTURE.md` §3, reproducible in-app via "Explain Calculation" |
 | Optimization (candidate generation + weighted multi-criteria scoring + sensitivity) | **Real**, not a black box — see `ARCHITECTURE.md` §4 |
-| Live weather for any of the 10 reference locations | **Real** — fetched client-side from [Open-Meteo](https://open-meteo.com) (no API key), a 7-day forecast averaged into a typical-day hourly curve, cached 7 days. See `app/js/weather-api.js`. |
-| Ladakh illustrative demo profiles (Leh/Kargil/Drass only) | **Demo / illustrative** — hand-built seasonal reference, clearly labelled, not field-measured |
-| "Annual" solar/sunshine figures shown for illustrative locations | Representative reference figures (e.g. Leh's ~2050 kWh/m²/yr is a known regional solar-resource stat) |
-| Same figures when using live weather | Extrapolated from the current 7-day forecast, **not annual climatology** — labelled as such wherever shown |
+| Hourly weather for any of the 10 reference locations | **Real** — fetched client-side from [Open-Meteo](https://open-meteo.com) (no API key), a 7-day forecast averaged into a typical-day hourly curve, cached 7 days. See `app/js/weather-api.js`. |
+| Annual solar potential ("kWh/m²/yr") + annual mean temperature | **Real** — fetched from [NASA POWER](https://power.larc.nasa.gov)'s 20-year (2001-2020) climatology, not extrapolated. See `app/js/nasa-power.js`. Falls back to a labelled forecast-based extrapolation only if that fetch fails. |
 | Material properties | **Engineering database reference values** — editable, labelled "verify for actual construction" |
 | Validation module error metrics (MAE/RMSE/MAPE/R²) | Real math, run against **user-provided or placeholder** measured rows — no field data exists yet |
 | PDF report | Browser print-to-PDF (production target: server-side rendering) |
 
-Every screen that shows climate-derived numbers displays a data-source badge
-(✓ green "Real — Open-Meteo" or ⚠ amber "Illustrative — demo dataset") so
-it's never ambiguous which kind of number you're looking at.
+No hand-authored, illustrative, or hardcoded climate dataset ships with this
+app — every location's numbers come from a live fetch. Every screen that
+shows climate-derived numbers displays a data-source badge so it's never
+ambiguous where a number came from.
 
 ## Two ways to use it
 
@@ -92,7 +92,9 @@ AreaTherm/
     css/styles.css
     js/
       config.js               branding + units + default weights (rename the app here)
-      data.js                 Ladakh demo climate sets, material library, comfort profiles
+      data.js                 10 reference locations, material library, comfort profiles (no climate data)
+      weather-api.js          Open-Meteo live weather client
+      nasa-power.js           NASA POWER climatology client (real annual solar/temp)
       engine.js               thermal engine + optimizer + validation stats (pure functions, no DOM)
       charts.js               dependency-free inline-SVG chart renderer
       store.js                app state ("database"), field-compatible with DATABASE_SCHEMA.sql
@@ -101,10 +103,11 @@ AreaTherm/
 
 ## Known limitations of this pass
 
-- No authentication/RBAC persistence, no live weather-API integration (NASA
-  POWER / ERA5 / IMD adapters are architected, not wired up), no 3D preview
-  (2D top-down schematic only), no ML surrogate model (no training data
-  exists yet — see `ARCHITECTURE.md` §9).
+- No authentication/RBAC persistence, no historical/multi-year climatology
+  beyond NASA POWER's solar/temperature figures (ERA5/IMD archive adapters
+  are architected, not wired up), no 3D preview (2D top-down schematic
+  only), no ML surrogate model (no training data exists yet — see
+  `ARCHITECTURE.md` §9).
 - Simple/Advanced mode toggle exists in the UI but does not yet gate which
   fields are shown — both modes currently expose the full parameter set.
 - State persists to `localStorage` per browser (not a shared multi-user
@@ -118,5 +121,5 @@ AreaTherm/
 2. Wire the Angular frontend to that API instead of `store.js`.
 3. Instrument a pilot shelter in Leh/Kargil and feed real readings into the
    Validation module to get an actual MAE/RMSE against the model.
-4. Add the NASA POWER / ERA5 / IMD climate adapters behind the existing
-   `ClimateProfile` abstraction.
+4. Add ERA5 / IMD archive adapters behind the existing `ClimateProfile`
+   abstraction, for historical climatology beyond NASA POWER's coverage.

@@ -30,9 +30,9 @@ window.APP_STORE = (function () {
     return {
       project: { name: "Untitled Project", createdAt: new Date().toISOString() },
       locationKey: null,
-      location: null, // custom location object if not using a demo dataset
+      location: null,
       seasonKey: "Winter",
-      climateSource: null, // { type: 'DEMO_ILLUSTRATIVE'|'USER_PROVIDED', label }
+      climateSource: null, // { type: 'REAL', apiSource, label, period, fetchedAt }
       design: defaultDesign(),
       simConfig: { timeStepMinutes: 60, periodType: "24H", days: 1 },
       weights: { ...window.APP_CONFIG.DEFAULT_WEIGHTS },
@@ -59,30 +59,10 @@ window.APP_STORE = (function () {
   function get() { return state; }
   function reset() { state = freshState(); save(); return state; }
 
-  function loadLadakhDemo(locationKey, seasonKey) {
-    loadIllustrativeDemo(locationKey, seasonKey);
-  }
-
-  function loadIllustrativeDemo(locationKey, seasonKey) {
-    const loc = DATA.LOCATIONS[locationKey];
-    if (!loc) return false;
-    state.locationKey = locationKey;
-    state.location = loc;
-    state.seasonKey = seasonKey || "Winter";
-    state.climateSource = {
-      type: "DEMO_ILLUSTRATIVE", apiSource: "DEMO",
-      label: "Demo / illustrative climate dataset",
-      period: "Representative seasonal reference — not measured"
-    };
-    state.project.name = `${loc.label} — Passive Agricultural Shelter`;
-    save();
-    return true;
-  }
-
-  // Fetches live weather from Open-Meteo for a predefined location and
-  // stores it in the same {seasons:{...}} shape the illustrative profiles
-  // use (as a single pseudo-season "Live"), so every screen that reads
-  // STORE.currentSeason() works unchanged regardless of data source.
+  // Fetches live weather (Open-Meteo) + real annual solar climatology
+  // (NASA POWER, below) for a predefined location and stores it as a
+  // single pseudo-season "Live" inside a {seasons:{...}} map, so every
+  // screen that reads STORE.currentSeason() works unchanged.
   async function loadRealClimate(locationId) {
     const loc = DATA.predefinedLocationById(locationId);
     if (!loc) throw new Error("Unknown location: " + locationId);
@@ -163,7 +143,7 @@ window.APP_STORE = (function () {
   }
 
   return {
-    get, save, reset, loadLadakhDemo, loadIllustrativeDemo, loadRealClimate,
+    get, save, reset, loadRealClimate,
     currentSeason, updateDesign,
     recordSimulation, recordOptimization, addValidationDataset, defaultDesign
   };

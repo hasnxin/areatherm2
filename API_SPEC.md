@@ -11,7 +11,7 @@ Base path: `/api/v1`. Auth: `Authorization: Bearer <JWT>`. All bodies JSON.
 - `GET /locations` — list saved locations for the current project
 - `POST /locations` — create a location `{country, state, district, village, latitude, longitude, elevationM}`
 - `GET /locations/{id}/climate-profiles` — list climate profiles for a location
-- `GET /climate-profiles/demo/ladakh` — the four illustrative demo datasets (Leh/Nubra/Kargil/Drass), flagged `isIllustrative: true`
+- `GET /climate-profiles/live?locationId=` — fetch/refresh a location's live Open-Meteo weather + NASA POWER climatology, cached server-side (5-7 day TTL)
 - `POST /climate-profiles` — create a user-provided climate profile (+ hourly series)
 
 ## Shelter Design
@@ -51,6 +51,6 @@ Base path: `/api/v1`. Auth: `Authorization: Bearer <JWT>`. All bodies JSON.
 - `GET /reports/{id}` — metadata + download link
 
 ## Conventions
-- Every response distinguishes `source`: `USER_INPUT` | `MODEL_ASSUMPTION` | `CALCULATED_RESULT` | `FIELD_MEASUREMENT` | `DEMO_ILLUSTRATIVE`, per the brief's scientific-integrity requirement.
+- Every response distinguishes `source`: `USER_INPUT` | `MODEL_ASSUMPTION` | `CALCULATED_RESULT` | `FIELD_MEASUREMENT` | `REAL_LIVE_FETCH` (Open-Meteo/NASA POWER), per the brief's scientific-integrity requirement.
 - Errors: standard `{status, error, message, path}` envelope.
 - All numeric fields carry explicit units in the field name or an adjacent `unit` field (never bare numbers) — see ARCHITECTURE.md §UNITS in `app/js/config.js` for the canonical unit set.

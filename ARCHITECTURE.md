@@ -227,7 +227,7 @@ space** (documented as such — not a black-box "AI recommendation"). Section
 
 ```
 Dashboard
-├── Location & Climate     (location form, Ladakh demo profiles, charts)
+├── Location & Climate     (10 reference locations, live Open-Meteo + NASA POWER, charts)
 ├── Shelter Designer       (geometry, shape, orientation, 2D preview)
 ├── Materials              (library: wall/roof/insulation/mass/window)
 ├── Thermal Simulation     (run, indoor-vs-ambient-vs-comfort chart,
@@ -241,7 +241,7 @@ Dashboard
 └── Settings                (assumptions & limitations, units, weights)
 ```
 Every screen offers **Simple Mode** (fewer fields, sane defaults, big
-Ladakh-demo button) and **Advanced Mode** (full parameter set, editable
+live-demo button) and **Advanced Mode** (full parameter set, editable
 material properties, editable orientation-factor table, custom time steps).
 
 ---
@@ -253,8 +253,10 @@ app/
   index.html            SPA shell + nav (→ Angular AppComponent/routes)
   css/styles.css        design system (scientific/technical)
   js/config.js          branding + units + default weights
-  js/data.js            Ladakh demo climate sets, material library,
+  js/data.js            10 reference locations, material library,
                          comfort profiles      (→ seed data / Flyway)
+  js/weather-api.js     Open-Meteo live weather client (→ climate/ adapter)
+  js/nasa-power.js      NASA POWER climatology client (→ climate/ adapter)
   js/engine.js          solar + thermal RC model + optimizer +
                          validation stats      (→ thermal/, optimization/)
   js/charts.js          dependency-free inline-SVG chart renderer
@@ -264,7 +266,6 @@ app/
   js/ui.js              screen rendering + event wiring
                          (→ Angular components)
   js/app.js             router/bootstrap                (→ Angular routing)
-data/sample-ladakh-demo.json   exported demo project
 ```
 
 ---
@@ -274,16 +275,19 @@ data/sample-ladakh-demo.json   exported demo project
 Phases 1–11 from the brief are delivered in this pass as a single running
 prototype rather than sequential milestones (feasible because there is no
 build/deploy step to gate on). Validation (Phase 9) and Reports (Phase 10)
-are included. Live weather-API integration is implemented client-side
-(Open-Meteo, `app/js/weather-api.js`) for 10 reference locations, with a
-Guided Setup wizard as the simplified entry point. Not implemented
-(explicitly out of scope for this pass, tracked for the production build):
-real authentication/RBAC persistence, historical/multi-year climatology
-(Open-Meteo's forecast endpoint only — no NASA POWER/ERA5/IMD archive
-integration yet), 3D preview (2D top-down + elevation preview only),
-server-side PDF rendering (browser print-to-PDF is used instead), ML
-surrogate model (architecture documented in §9, not trained — no labelled
-field data exists yet to train or validate one).
+are included. Live weather-API integration is implemented client-side:
+Open-Meteo (`app/js/weather-api.js`) drives the hourly simulation, and
+NASA POWER (`app/js/nasa-power.js`) supplies real 20-year solar/temperature
+climatology, for all 10 reference locations, with a Guided Setup wizard as
+the simplified entry point. No hand-authored or illustrative climate
+dataset ships with the app. Not implemented (explicitly out of scope for
+this pass, tracked for the production build): real authentication/RBAC
+persistence, ERA5/IMD archive integration (NASA POWER covers solar/temp
+climatology; ERA5/IMD would add other historical variables), 3D preview
+(2D top-down + elevation preview only), server-side PDF rendering (browser
+print-to-PDF is used instead), ML surrogate model (architecture documented
+in §9, not trained — no labelled field data exists yet to train or
+validate one).
 
 ## 8. Assumptions register (also shown live in-app under Settings)
 
@@ -294,8 +298,9 @@ into the sol-air simplification). Ground temperature defaults to monthly
 mean ambient unless overridden. Internal gains are constant-per-hour unless
 an occupancy schedule is supplied. PCM modelled via elevated apparent
 specific heat over its melt band, not a full enthalpy method. Weather inputs
-are user-provided or the labelled "Demo / illustrative" Ladakh datasets —
-never claimed as measured or field-validated.
+are a live Open-Meteo forecast average blended with NASA POWER climatology
+for the annual solar/temperature figures — never claimed as measured or
+field-validated.
 
 ## 9. AI/ML Layer (documented, not built)
 

@@ -19,7 +19,7 @@ window.UI = window.UI || {};
         <span class="step">RECOMMENDATION</span>
       </div>`}
       <div class="cta-row">
-        <button class="btn btn-accent" id="heroDemoBtn">▶ Run Ladakh Demo</button>
+        <button class="btn btn-accent" id="heroDemoBtn">▶ Run Live Demo</button>
         <button class="btn" id="heroWorkflowBtn" style="background:transparent;border-color:rgba(255,255,255,.4);color:#fff;">Start Guided Setup →</button>
       </div>
     </div>`;
@@ -76,13 +76,13 @@ window.UI = window.UI || {};
             <h3>Recent Simulations</h3>
             ${hist.length ? `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Location</th><th>Design</th><th>Score</th></tr></thead><tbody>
               ${hist.slice(0, 6).map(h => `<tr><td style="font-family:var(--mono);font-size:11px;">${h.id}</td><td>${U.esc(h.locationLabel)}</td><td>${U.esc(h.designName)}</td><td class="num">${h.thermalComfortScore}</td></tr>`).join("")}
-            </tbody></table></div>` : `<p class="subtitle">No simulations yet. Try Guided Setup or the Ladakh demo.</p>`}
+            </tbody></table></div>` : `<p class="subtitle">No simulations yet. Try Guided Setup or the live demo.</p>`}
           </div>
         </div>
       </div>`;
 
     CH.scoreGauge(U.qs("#dashGauge", root), last ? last.scores.thermalComfortScore : 0);
-    U.on("#heroDemoBtn", "click", () => window.APP.runLadakhDemo(), root);
+    U.on("#heroDemoBtn", "click", () => window.APP.runLiveDemo(), root);
     U.on("#heroWorkflowBtn", "click", () => window.APP.navigate("guided"), root);
     U.on("#advToggle", "click", () => {
       U.qs("#advToggle", root).classList.toggle("open");
@@ -145,11 +145,10 @@ window.UI = window.UI || {};
     const s = STORE.get();
     const loc = s.location;
     const season = STORE.currentSeason();
-    const hasIllustrative = loc && DATA.LOCATIONS[loc.key];
 
     root.innerHTML = `
       <h1>Location &amp; Climate Profile</h1>
-      <p class="subtitle">Pick any of 10 reference locations and load live weather, or an illustrative demo profile.</p>
+      <p class="subtitle">Pick any of 10 reference locations and load its live weather.</p>
 
       <div class="card">
         <h3>Select Location</h3>
@@ -160,14 +159,14 @@ window.UI = window.UI || {};
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
           <button class="btn btn-accent" id="loadRealBtn">🌐 Load Real Weather (Open-Meteo)</button>
-          <button class="btn btn-sm" id="loadIllustrativeBtn">📋 Load Illustrative Demo</button>
           <span id="fetchStatus" class="hint"></span>
         </div>
-        <p class="hint" style="margin-top:10px;">Real weather comes live from
+        <p class="hint" style="margin-top:10px;">Live weather from
         <a href="https://open-meteo.com" target="_blank" rel="noopener" style="color:var(--accent);">Open-Meteo</a>
-        (no API key, cached 7 days) — a 7-day forecast averaged into a typical-day curve. Illustrative demo profiles
-        are hand-built seasonal references, only available for Leh, Kargil, and Drass. Neither is field-measured or
-        DRDO-validated data.</p>
+        (no API key, cached 7 days) — a 7-day forecast averaged into a typical-day curve — plus real 20-year
+        solar/temperature climatology from <a href="https://power.larc.nasa.gov" target="_blank" rel="noopener"
+        style="color:var(--accent);">NASA POWER</a>. No hand-authored or illustrative climate data ships with
+        this app; every number here comes from a live source.</p>
       </div>
 
       <div class="card" style="margin-top:16px;">
@@ -197,19 +196,6 @@ window.UI = window.UI || {};
       </div>`;
 
     renderClimateSummary(root, s, season);
-    U.qs("#loadIllustrativeBtn", root).disabled = !hasIllustrativeFor(U.qs("#locSelect", root).value);
-    updateIllustrativeBtnState(root);
-
-    function updateIllustrativeBtnState(r) {
-      const id = U.qs("#locSelect", r).value;
-      const btn = U.qs("#loadIllustrativeBtn", r);
-      const avail = hasIllustrativeFor(id);
-      btn.disabled = !avail;
-      btn.title = avail ? "" : "No illustrative dataset for this location — use Real Weather instead.";
-    }
-    function hasIllustrativeFor(id) { return !!DATA.LOCATIONS[id]; }
-
-    U.on("#locSelect", "change", () => updateIllustrativeBtnState(root), root);
 
     U.on("#loadRealBtn", "click", async () => {
       const id = U.qs("#locSelect", root).value;
@@ -223,18 +209,9 @@ window.UI = window.UI || {};
         window.APP.toast("Live weather loaded from Open-Meteo.");
       } catch (e) {
         statusEl.textContent = "";
-        const fallback = hasIllustrativeFor(id);
-        alert("Could not fetch live weather: " + e.message + (fallback ? "\n\nYou can load the illustrative demo for this location instead." : ""));
+        alert("Could not fetch live weather: " + e.message + "\n\nCheck your internet connection and try again.");
         btn.disabled = false;
       }
-    }, root);
-
-    U.on("#loadIllustrativeBtn", "click", () => {
-      const id = U.qs("#locSelect", root).value;
-      if (!hasIllustrativeFor(id)) return;
-      STORE.loadIllustrativeDemo(id, "Winter");
-      window.APP.render();
-      window.APP.toast("Illustrative demo profile loaded.");
     }, root);
 
     U.on("#saveComfortBtn", "click", () => {
@@ -560,15 +537,8 @@ window.UI = window.UI || {};
         window.APP.render();
       } catch (e) {
         U.qs("#gFetchStatus", root).textContent = "";
-        const hasDemo = !!DATA.LOCATIONS[id];
-        if (hasDemo) {
-          STORE.loadIllustrativeDemo(id, "Winter");
-          window.APP.toast("Live fetch failed — loaded illustrative demo instead.");
-          window.APP.render();
-        } else {
-          alert("Could not fetch live weather: " + e.message);
-          btn.disabled = false;
-        }
+        alert("Could not fetch live weather: " + e.message + "\n\nCheck your internet connection and try again.");
+        btn.disabled = false;
       }
     }, root);
     wireGuidedNav(root, () => { guidedStep = 2; window.APP.render(); });

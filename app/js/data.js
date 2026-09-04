@@ -1,69 +1,15 @@
-/* AreaTherm — demo climate datasets, material library, comfort profiles.
-   All climate figures below are DEMO / ILLUSTRATIVE datasets for prototype
-   demonstration only — NOT field-measured or DRDO-validated data. */
+/* AreaTherm — reference locations, material library, comfort profiles.
+   Climate data is never hand-authored here — every location's numbers
+   come from a live fetch (Open-Meteo + NASA POWER, see weather-api.js /
+   nasa-power.js). Only the location catalog itself (name/coordinates/
+   elevation, below) is static, since it's just a site-selection shortcut. */
 
 window.APP_DATA = (function () {
 
-  // ---- Ladakh demo climate profiles --------------------------------
-  // Seasons per location: Winter / Spring / Summer / Autumn.
-  // tMin/tMax = ambient air temperature range (°C)
-  // solarKwhDay = illustrative daily global horizontal irradiation (kWh/m2/day)
-  // sunrise/sunset in decimal hours; windMs, rhPct, cloudPct are illustrative.
-  const LOCATIONS = {
-    leh: {
-      key: "leh", label: "Leh, Ladakh",
-      country: "India", state: "Ladakh (UT)", district: "Leh",
-      latitude: 34.1526, longitude: 77.5771, elevationM: 3500,
-      annualSolarKwhM2Yr: 2050, avgSunshineHoursDay: 7.9, avgCloudFreeDays: 300,
-      seasons: {
-        Winter: { tMin: -15, tMax: -1, solarKwhDay: 3.6, sunrise: 7.3, sunset: 17.0, windMs: 2.1, rhPct: 38, cloudPct: 12 },
-        Spring: { tMin: -4, tMax: 12, solarKwhDay: 5.6, sunrise: 6.0, sunset: 18.5, windMs: 2.8, rhPct: 32, cloudPct: 15 },
-        Summer: { tMin: 10, tMax: 27, solarKwhDay: 6.4, sunrise: 5.3, sunset: 19.6, windMs: 2.4, rhPct: 35, cloudPct: 18 },
-        Autumn: { tMin: -6, tMax: 15, solarKwhDay: 4.9, sunrise: 6.2, sunset: 18.0, windMs: 2.0, rhPct: 30, cloudPct: 10 }
-      }
-    },
-    nubra: {
-      key: "nubra", label: "Nubra Valley, Ladakh",
-      country: "India", state: "Ladakh (UT)", district: "Leh (Nubra)",
-      latitude: 34.6803, longitude: 77.5654, elevationM: 3050,
-      annualSolarKwhM2Yr: 2020, avgSunshineHoursDay: 8.0, avgCloudFreeDays: 305,
-      seasons: {
-        Winter: { tMin: -12, tMax: 2, solarKwhDay: 3.7, sunrise: 7.2, sunset: 17.1, windMs: 2.3, rhPct: 34, cloudPct: 10 },
-        Spring: { tMin: -2, tMax: 14, solarKwhDay: 5.7, sunrise: 6.0, sunset: 18.6, windMs: 2.9, rhPct: 28, cloudPct: 13 },
-        Summer: { tMin: 13, tMax: 29, solarKwhDay: 6.5, sunrise: 5.2, sunset: 19.7, windMs: 2.5, rhPct: 30, cloudPct: 16 },
-        Autumn: { tMin: -4, tMax: 17, solarKwhDay: 5.0, sunrise: 6.1, sunset: 18.1, windMs: 2.1, rhPct: 27, cloudPct: 9 }
-      }
-    },
-    kargil: {
-      key: "kargil", label: "Kargil, Ladakh",
-      country: "India", state: "Ladakh (UT)", district: "Kargil",
-      latitude: 34.5539, longitude: 76.1349, elevationM: 2676,
-      annualSolarKwhM2Yr: 1950, avgSunshineHoursDay: 7.6, avgCloudFreeDays: 280,
-      seasons: {
-        Winter: { tMin: -10, tMax: 2, solarKwhDay: 3.3, sunrise: 7.4, sunset: 17.2, windMs: 1.9, rhPct: 42, cloudPct: 18 },
-        Spring: { tMin: -1, tMax: 15, solarKwhDay: 5.3, sunrise: 6.1, sunset: 18.6, windMs: 2.4, rhPct: 36, cloudPct: 20 },
-        Summer: { tMin: 14, tMax: 30, solarKwhDay: 6.1, sunrise: 5.4, sunset: 19.7, windMs: 2.0, rhPct: 38, cloudPct: 22 },
-        Autumn: { tMin: -3, tMax: 17, solarKwhDay: 4.6, sunrise: 6.3, sunset: 18.1, windMs: 1.8, rhPct: 33, cloudPct: 16 }
-      }
-    },
-    dras: {
-      key: "dras", label: "Drass, Ladakh",
-      country: "India", state: "Ladakh (UT)", district: "Kargil (Drass)",
-      latitude: 34.4362, longitude: 75.7622, elevationM: 3230,
-      annualSolarKwhM2Yr: 1900, avgSunshineHoursDay: 7.2, avgCloudFreeDays: 270,
-      seasons: {
-        Winter: { tMin: -25, tMax: -8, solarKwhDay: 3.1, sunrise: 7.5, sunset: 17.1, windMs: 1.6, rhPct: 40, cloudPct: 16 },
-        Spring: { tMin: -8, tMax: 10, solarKwhDay: 5.0, sunrise: 6.1, sunset: 18.5, windMs: 2.1, rhPct: 34, cloudPct: 18 },
-        Summer: { tMin: 8, tMax: 24, solarKwhDay: 5.9, sunrise: 5.4, sunset: 19.6, windMs: 1.8, rhPct: 37, cloudPct: 20 },
-        Autumn: { tMin: -9, tMax: 13, solarKwhDay: 4.4, sunrise: 6.3, sunset: 18.0, windMs: 1.5, rhPct: 32, cloudPct: 14 }
-      }
-    }
-  };
-
-  // ---- Predefined reference locations (for live Open-Meteo lookup) ----
+  // ---- Predefined reference locations (for live Open-Meteo + NASA POWER lookup) ----
   // Coordinates/elevations are reference values for site selection, not
-  // survey-grade. Any of these can load LIVE weather (Open-Meteo) or, for
-  // the three that overlap LOCATIONS above, an illustrative demo profile.
+  // survey-grade. Every location loads LIVE weather — no illustrative/demo
+  // climate data ships with the app.
   const PREDEFINED_LOCATIONS = [
     { id: "leh", name: "Leh, Ladakh", latitude: 34.1526, longitude: 77.5771, elevationM: 3500, region: "Ladakh (UT)", category: "Cold desert" },
     { id: "kargil", name: "Kargil, Ladakh", latitude: 34.56, longitude: 76.11, elevationM: 2676, region: "Ladakh (UT)", category: "Cold desert" },
@@ -146,7 +92,7 @@ window.APP_DATA = (function () {
   }
 
   return {
-    LOCATIONS, PREDEFINED_LOCATIONS, MATERIALS, COMFORT_PROFILES,
+    PREDEFINED_LOCATIONS, MATERIALS, COMFORT_PROFILES,
     materialsByCategory, materialById, predefinedLocationById
   };
 })();

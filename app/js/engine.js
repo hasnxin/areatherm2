@@ -109,10 +109,10 @@ window.APP_ENGINE = (function () {
   }
 
   // ---- Diurnal ambient temperature & solar irradiance -------------------
-  // Two drivers are supported: a synthetic sinusoidal/bell-curve model
-  // (used by the illustrative demo profiles, which only carry tMin/tMax/
-  // sunrise/sunset), and direct interpolation over a real 24-point hourly
-  // curve (used when live data was fetched — see weather-api.js). Neither
+  // Two drivers are supported: direct interpolation over a real 24-point
+  // hourly curve (the normal path — live data from weather-api.js), and a
+  // synthetic sinusoidal/bell-curve fallback for any season object that
+  // only carries tMin/tMax/sunrise/sunset without an hourly series. Neither
   // touches the RC simulation loop below; they only supply its driving
   // temperatures.
   function interpHourly(hourly, field, hourDecimal) {
